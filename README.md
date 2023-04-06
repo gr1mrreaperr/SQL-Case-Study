@@ -12,11 +12,10 @@ I used Microsoft SQL Server in writing SQL queries to solve these case studies.
 * Data cleaning & transformation
 * Aggregations
 * Joins
-*CTEs
+* CTEs
 * Variables
 * Window functions
-* Ranking (ROW_NUMBER, DENSE_RANK)
-* Analytics (LEAD, LAG)
+  Ranking (ROW_NUMBER, DENSE_RANK)
 * CASE WHEN statements
 * Subqueries
 * UNION & INTERSECT
@@ -26,4 +25,4 @@ I used Microsoft SQL Server in writing SQL queries to solve these case studies.
 
 # Case Study #1 : Danny's Diner
 
-[My Solution]([https://:](https://stackoverflow.com/questions/3003476/get-underlined-text-with-markdown)
+[My Solution]
