@@ -15,7 +15,7 @@ I used Microsoft SQL Server in writing SQL queries to solve these case studies.
 * CTEs
 * Variables
 * Window functions
-  Ranking (ROW_NUMBER, DENSE_RANK)
+ ** Ranking (ROW_NUMBER, DENSE_RANK)
 * CASE WHEN statements
 * Subqueries
 * UNION & INTERSECT
