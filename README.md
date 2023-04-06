@@ -5,4 +5,25 @@ I used Microsoft SQL Server in writing SQL queries to solve these case studies.
 <ins> Table of Contents </ins>
 * SQL Skills Gained
 * Case Study 1
+* Case Study 2
 
+
+<ins> SQL Skills Gained </ins>
+* Data cleaning & transformation
+* Aggregations
+* Joins
+*CTEs
+* Variables
+* Window functions
+* Ranking (ROW_NUMBER, DENSE_RANK)
+* Analytics (LEAD, LAG)
+* CASE WHEN statements
+* Subqueries
+* UNION & INTERSECT
+* DATETIME functions
+* Data type conversion
+* TEXT functions, text and string manipulation
+
+# Case Study #1 : Danny's Diner
+
+[My Solution]([https://:](https://stackoverflow.com/questions/3003476/get-underlined-text-with-markdown)
