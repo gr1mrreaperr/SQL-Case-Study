@@ -1,0 +1,188 @@
+USE [8weekSQLChallenge]
+GO
+
+
+/*Q1.) What is the total amount each customer spent at the restaurant? */
+
+SELECT s.customer_id, 
+       SUM(m.price) AS total_spent
+FROM sales AS s
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+GROUP BY s.customer_id;
+
+/*Q2.) How many days has each customer visited the restaurant? */
+SELECT customer_id,
+       COUNT(DISTINCT(order_date)) AS visits
+FROM sales
+GROUP BY customer_id;
+
+
+/*Q3.) What was the first item from the menu purchased by each customer? */
+
+WITH first_item AS
+(
+SELECT s.customer_id,
+       m.product_name, [rank] = RANK() OVER(PARTITION BY customer_id ORDER BY s.order_date ASC)
+FROM sales AS s
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+)
+SELECT customer_id, product_name
+FROM first_item 
+WHERE [rank] = 1
+GROUP BY customer_id, product_name;
+
+
+
+/*Q4.) What is the most purchased item on the menu and how many times was it purchased by all customers? */
+SELECT TOP 1 s.product_id,
+             m.product_name,
+	       COUNT(s.product_id) AS total_sold 
+FROM sales AS s
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+GROUP BY s.product_id,m.product_name
+ORDER BY total_sold DESC;
+
+
+/*Q5.) Which item was the most popular for each customer? */
+
+SELECT TOP 1 WITH TIES 
+                    s.customer_id, 
+                    COUNT(s.product_id) AS fav_product,
+                    m.product_name 
+FROM sales AS s
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+GROUP BY s.customer_id, m.product_name 
+ORDER BY DENSE_RANK() OVER(PARTITION BY customer_id ORDER BY COUNT(s.product_id) DESC);
+
+/*Q6.) Which item was purchased first by the customer after they became a member? */
+
+SELECT TOP 1 WITH TIES s.customer_id, 
+                       s.product_id, 
+			     s.order_date, 
+			     m.join_date, 
+			     me.product_name
+FROM sales AS s
+INNER JOIN members AS m
+ON s.customer_id = m.customer_id
+INNER JOIN menu AS me
+ON me.product_id = s.product_id
+WHERE s.order_date >= m.join_date
+ORDER BY RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date ASC);
+
+/*Q7.) Which item was purchased just before the customer became a member? */
+
+SELECT TOP 1 WITH TIES s.customer_id, 
+                       s.product_id, 
+			     s.order_date, 
+			     m.join_date, 
+			     me.product_name
+FROM sales AS s
+INNER JOIN members AS m
+ON s.customer_id = m.customer_id
+INNER JOIN menu AS me
+ON me.product_id = s.product_id
+WHERE s.order_date < m.join_date
+ORDER BY RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC);
+
+
+/*Q8.) What is the total items and amount spent for each member before they became a member? */
+
+SELECT s.customer_id, 
+       COUNT(me.product_name), SUM (me.price)              
+FROM sales AS s
+INNER JOIN members AS m
+ON s.customer_id = m.customer_id
+INNER JOIN menu AS me
+ON me.product_id = s.product_id
+WHERE s.order_date < m.join_date
+GROUP BY s.customer_id
+
+
+/*Q9.) If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have? */
+
+SELECT s.customer_id, 
+       SUM(CASE
+           WHEN m.product_name = 'sushi' THEN m.price * 20
+	     ELSE m.price * 10
+           END) AS total_points
+
+FROM sales AS s
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+GROUP BY s.customer_id;
+
+
+/*Q10.) In the first week after a customer joins the program (including their join date) they earn 2x points on all items,
+        not just sushi - how many points do customer A and B have at the end of January? */
+
+WITH dates AS (
+				SELECT *, DATEADD(DAY,6, join_date) AS first_week 
+				FROM members
+	           )
+SELECT s.customer_id,
+                     SUM(CASE WHEN m.product_name = 'sushi' THEN m.price * 20
+					          WHEN s.order_date BETWEEN join_date AND first_week THEN m.price * 20
+							  ELSE m.price * 10 END) AS points
+FROM dates AS dt
+LEFT JOIN sales AS s
+ON dt.customer_id = s.customer_id
+INNER JOIN menu AS m
+ON s.product_id = m.product_id
+WHERE s.order_date < CAST( '2021-02-01' AS DATE)
+GROUP BY s.customer_id;
+
+
+/*Bonus Question*/
+
+
+/*Join All The Things*/
+
+SELECT s.customer_id,
+       s.order_date,
+	 me.product_name,
+	 me.price,
+	   (CASE 
+              WHEN m.join_date > s.order_date THEN 'N'
+			  WHEN m.join_date IS NULL THEN 'N'
+			  ELSE 'Y' 
+         END) AS member
+
+FROM sales AS s
+LEFT JOIN members AS m
+ON s.customer_id = m.customer_id
+INNER JOIN menu AS me
+ON me.product_id = s.product_id;
+
+
+/* Rank All The Things */
+
+WITH ranking_cte AS (
+SELECT s.customer_id,
+       s.order_date,
+	   me.product_name,
+	   me.price,
+	   (CASE 
+			WHEN m.join_date > s.order_date THEN 'N'
+			WHEN m.join_date IS NULL THEN 'N'
+			ELSE 'Y' END) AS member
+
+FROM sales AS s
+LEFT JOIN members AS m
+ON s.customer_id = m.customer_id
+INNER JOIN menu AS me
+ON me.product_id = s.product_id
+			  )
+SELECT customer_id,
+       order_date,
+	 product_name,
+	 price,
+	 member,
+          (CASE
+              WHEN member = 'N' THEN NULL
+			  ELSE RANK() OVER (PARTITION BY customer_id,member ORDER BY order_date ASC)
+	     END)AS ranking
+			  FROM ranking_cte;
