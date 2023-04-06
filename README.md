@@ -3,3 +3,4 @@ This repository contains solutions for #8WeekSQLChallenge, they are interesting 
 I used Microsoft SQL Server in writing SQL queries to solve these case studies.
 
 # Table of Contents
+* Skills Gained
